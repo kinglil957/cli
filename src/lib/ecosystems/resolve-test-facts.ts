@@ -220,7 +220,9 @@ export async function resolveAndTestFactsUnmanagedDeps(
         const vulnerabilities: IssueDataUnmanaged[] = [];
         for (const issuesDataKey in issuesDataFiltered) {
           if (issuesMap[issuesDataKey]) {
-            const issueData = issuesDataFiltered[issuesDataKey] as IssueDataUnmanaged;
+            const issueData = issuesDataFiltered[
+              issuesDataKey
+            ] as IssueDataUnmanaged;
             const pkgCoordinate = `${issuesMap[issuesDataKey].pkgName}@${issuesMap[issuesDataKey].pkgVersion}`;
             issueData.from = [pkgCoordinate];
             issueData.name = pkgCoordinate;
@@ -236,8 +238,13 @@ export async function resolveAndTestFactsUnmanagedDeps(
         const filteredIgnore: IssueDataUnmanaged[] = [];
         for (const issuesDataKey in issuesData) {
           // If the issue was in the original data but not in the filtered data, it was ignored
-          if (!(issuesDataKey in issuesDataFiltered) && issuesMap[issuesDataKey]) {
-            const issueData = { ...issuesData[issuesDataKey] } as IssueDataUnmanaged;
+          if (
+            !(issuesDataKey in issuesDataFiltered) &&
+            issuesMap[issuesDataKey]
+          ) {
+            const issueData = {
+              ...issuesData[issuesDataKey],
+            } as IssueDataUnmanaged;
             const pkgCoordinate = `${issuesMap[issuesDataKey].pkgName}@${issuesMap[issuesDataKey].pkgVersion}`;
             issueData.from = [pkgCoordinate];
             issueData.name = pkgCoordinate;
