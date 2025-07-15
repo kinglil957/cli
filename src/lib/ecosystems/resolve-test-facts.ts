@@ -203,7 +203,7 @@ export async function resolveAndTestFactsUnmanagedDeps(
           orgId,
         );
 
-        const issuesMap: Map<string, Issue> = new Map();
+        const issuesMap: { [key: string]: Issue } = {};
         issues.forEach((i) => {
           issuesMap[i.issueId] = i;
         });
@@ -216,45 +216,36 @@ export async function resolveAndTestFactsUnmanagedDeps(
           policy,
         );
 
-        // Build vulnerabilities array from filtered data instead of original data
-        const vulnerabilities: Partial<IssueDataUnmanaged>[] = [];
+        // Build vulnerabilities array from filtered data.
+        const vulnerabilities: IssueDataUnmanaged[] = [];
         for (const issuesDataKey in issuesDataFiltered) {
-          const pkgCoordinate = `${issuesMap[issuesDataKey]?.pkgName}@${issuesMap[issuesDataKey]?.pkgVersion}`;
-          const issueData = issuesDataFiltered[issuesDataKey];
-
-          // Create a new vulnerability object with the correct structure
-          const vulnerability: Partial<IssueDataUnmanaged> = {
-            ...issueData,
-            from: [pkgCoordinate],
-            name: pkgCoordinate,
-            packageManager: packageManager,
-            version: issuesMap[issuesDataKey]?.pkgVersion,
-            upgradePath: [false],
-            isPatchable: false,
-          };
-
-          vulnerabilities.push(vulnerability);
+          if (issuesMap[issuesDataKey]) {
+            const issueData = issuesDataFiltered[issuesDataKey] as IssueDataUnmanaged;
+            const pkgCoordinate = `${issuesMap[issuesDataKey].pkgName}@${issuesMap[issuesDataKey].pkgVersion}`;
+            issueData.from = [pkgCoordinate];
+            issueData.name = pkgCoordinate;
+            issueData.packageManager = packageManager;
+            issueData.version = issuesMap[issuesDataKey].pkgVersion || '';
+            issueData.upgradePath = [false];
+            issueData.isPatchable = false;
+            vulnerabilities.push(issueData);
+          }
         }
 
         // Build filtered.ignore array with ignored vulnerabilities
-        const filteredIgnore: Partial<IssueDataUnmanaged>[] = [];
+        const filteredIgnore: IssueDataUnmanaged[] = [];
         for (const issuesDataKey in issuesData) {
           // If the issue was in the original data but not in the filtered data, it was ignored
-          if (!(issuesDataKey in issuesDataFiltered)) {
-            const pkgCoordinate = `${issuesMap[issuesDataKey]?.pkgName}@${issuesMap[issuesDataKey]?.pkgVersion}`;
-            const issueData = issuesData[issuesDataKey];
-
-            const ignoredVulnerability: Partial<IssueDataUnmanaged> = {
-              ...issueData,
-              from: [pkgCoordinate],
-              name: pkgCoordinate,
-              packageManager: packageManager,
-              version: issuesMap[issuesDataKey]?.pkgVersion,
-              upgradePath: [false],
-              isPatchable: false,
-            };
-
-            filteredIgnore.push(ignoredVulnerability);
+          if (!(issuesDataKey in issuesDataFiltered) && issuesMap[issuesDataKey]) {
+            const issueData = { ...issuesData[issuesDataKey] } as IssueDataUnmanaged;
+            const pkgCoordinate = `${issuesMap[issuesDataKey].pkgName}@${issuesMap[issuesDataKey].pkgVersion}`;
+            issueData.from = [pkgCoordinate];
+            issueData.name = pkgCoordinate;
+            issueData.packageManager = packageManager;
+            issueData.version = issuesMap[issuesDataKey].pkgVersion || '';
+            issueData.upgradePath = [false];
+            issueData.isPatchable = false;
+            filteredIgnore.push(issueData);
           }
         }
 
